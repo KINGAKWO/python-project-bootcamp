@@ -1,0 +1,82 @@
+[
+    {
+        "type": "income",
+        "description": "salary",
+        "income_amount": 250000.0,
+        "expense_amount": 0,
+        "net_amount": 0,
+        "date": "10-10-25"
+    },
+    {
+        "type": "expense",
+        "description": "internet",
+        "income_amount": 0,
+        "expense_amount": 15000.0,
+        "net_amount": 0,
+        "date": "10-10-25"
+    },
+    {
+        "type": "expense",
+        "description": "food",
+        "income_amount": 0,
+        "expense_amount": 30000.0,
+        "net_amount": 0,
+        "date": "10-10-25"
+    },
+    {
+        "type": "expense",
+        "description": "cable",
+        "income_amount": 0,
+        "expense_amount": 15000.0,
+        "net_amount": 0,
+        "date": "10-10-25"
+    },
+    {
+        "type": "income",
+        "description": "Freelance Project",
+        "income_amount": 25000.0,
+        "expense_amount": 0,
+        "net_amount": 0,
+        "date": "04-10-2025"
+    },
+    {
+        "type": "income",
+        "description": "egss",
+        "income_amount": 3000.0,
+        "expense_amount": 0,
+        "net_amount": 0,
+        "date": "10-10-2025"
+    },
+    {
+        "type": "income",
+        "description": "upwork gig",
+        "income_amount": 20000.0,
+        "expense_amount": 0,
+        "net_amount": 0,
+        "date": "10-10-2025"
+    },
+    {
+        "type": "expense",
+        "description": "coffee",
+        "income_amount": 0,
+        "expense_amount": 600.0,
+        "net_amount": 0,
+        "date": "12-10-2025"
+    },
+    {
+        "type": "expense",
+        "description": "airpods",
+        "income_amount": 0,
+        "expense_amount": 10000.0,
+        "net_amount": 0,
+        "date": "11-10-2025"
+    },
+    {
+        "type": "income",
+        "description": "contract",
+        "income_amount": 50000.0,
+        "expense_amount": 0,
+        "net_amount": 0,
+        "date": "12-10-2025"
+    }
+]
