@@ -106,7 +106,7 @@ def add_transaction(transactions):
         "date": date_input
     }
     transactions.append(transaction)
-    save_data(transactions)
+    save_transactions(transactions)
 
     print("Transaction added successfully!")
     print(f"Transaction added:{description} ({choice}) — {amount:.2f}xaf on {date_input}")
