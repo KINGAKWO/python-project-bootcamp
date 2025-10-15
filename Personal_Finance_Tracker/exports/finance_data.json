@@ -1,0 +1,42 @@
+[
+    {
+        "type": "income",
+        "description": "salary",
+        "income_amount": 10000.0,
+        "expense_amount": 0,
+        "net_amount": 10000.0,
+        "date": "14-10-2025"
+    },
+    {
+        "type": "expense",
+        "description": "indomie",
+        "income_amount": 0,
+        "expense_amount": 1500.0,
+        "net_amount": -1500.0,
+        "date": "15-10-2025"
+    },
+    {
+        "type": "expense",
+        "description": "poulet",
+        "income_amount": 0,
+        "expense_amount": 1500.0,
+        "net_amount": -1500.0,
+        "date": "15-10-2025"
+    },
+    {
+        "type": "expense",
+        "description": "lait",
+        "income_amount": 0,
+        "expense_amount": 1500.0,
+        "net_amount": -1500.0,
+        "date": "15-10-2025"
+    },
+    {
+        "type": "expense",
+        "description": "sucre",
+        "income_amount": 0,
+        "expense_amount": 800.0,
+        "net_amount": -800.0,
+        "date": "15-10-2025"
+    }
+]

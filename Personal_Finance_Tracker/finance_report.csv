@@ -1,0 +1,5 @@
+date,type,income_amount,expense_amount,net_amount,description
+14-10-2025,income,10000.0,0,10000.0,salary
+15-10-2025,expense,0,1500.0,-1500.0,indomie
+15-10-2025,expense,0,1500.0,-1500.0,poulet
+15-10-2025,expense,0,1500.0,-1500.0,lait

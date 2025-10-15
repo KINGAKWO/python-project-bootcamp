@@ -1,12 +1,14 @@
 import csv
 import os
 import json
+import re
 from datetime import datetime
 from collections import Counter
 from collections import defaultdict
 import matplotlib.pyplot as plt
 
-DATA_FILE = "Personal Finance Tracker/finance_data.json"
+DATA_FILE = "Personal_Finance_Tracker/finance_data.json"
+EXPORT_DIR = "exports"
 
 
 def load_transactions(filename=DATA_FILE):
@@ -25,6 +27,8 @@ def load_transactions(filename=DATA_FILE):
 
 def save_transactions(transactions, filename=DATA_FILE):
     """Save all transactions to the JSON file."""
+    # Ensure the directory exists before writing
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(transactions, f, indent=4)
 
@@ -131,13 +135,13 @@ def view_transactions(transactions):
     for transaction in sorted(transactions, key=lambda x: x['date']):
         income_amount = transaction.get("income_amount", 0)
         expense_amount = transaction.get("expense_amount", 0)
-        net_amount = transaction.get("net_amount", 0)
+        # Show the actual transaction amount, not running net balance
+        amount = income_amount if income_amount else -expense_amount
 
         total_income += income_amount
         total_expense += expense_amount
-        net_amount = total_income - total_expense
 
-        print(f"{transaction['date']:<12} | {transaction['type']:<8} | {transaction['description']:<20} | {net_amount:>9.2f}xaf")
+        print(f"{transaction['date']:<12} | {transaction['type']:<8} | {transaction['description']:<20} | {amount:>9.2f}xaf")
 
     # totals
     print("-" * 50)
@@ -205,8 +209,8 @@ def search_transactions(transactions):
 
     elif choice == "2":
         try:
-            start_date_str = input("Enter start date (DD-MM-YYYY: )").strip()
-            end_date_str = input("Enter end date (DD-MM-YYYY: )").strip()
+            start_date_str = input("Enter start date (DD-MM-YYYY): ").strip()
+            end_date_str = input("Enter end date (DD-MM-YYYY): ").strip()
 
             start_date = datetime.strptime(start_date_str, "%d-%m-%Y")
             end_date = datetime.strptime(end_date_str, "%d-%m-%Y")
@@ -219,21 +223,21 @@ def search_transactions(transactions):
                 transaction for transaction in transactions
                 if start_date <= datetime.strptime(transaction["date"], "%d-%m-%Y") <= end_date
             ]
-            return results
         except ValueError:
             print("Invalid date format. Please use DD-MM-YYYY.")
             return
 
     elif choice == "3":
-        transaction_type = input("Enter type (income/expense)").strip().lower()
+        transaction_type = input("Enter type (income/expense): ").strip().lower()
         if transaction_type in ("income", "1"):
             results = [transaction for transaction in transactions if
                        transaction["type"] == "income"]
-            return results
         elif transaction_type in ("expense", "2"):
             results = [transaction for transaction in transactions if
                        transaction["type"] == "expense"]
-            return results
+        else:
+            print("Invalid type. Please enter 'income' or 'expense'.")
+            return
 
     elif choice == "4":
         return
@@ -249,7 +253,10 @@ def search_transactions(transactions):
         print(f"{'Date':<12} | {'Type':<8} | {'Description':<20} | {'Amount':>10}")
         print("-" * 50)
         for transaction in results:
-            print(f"{transaction['date']:<12} | {transaction['type']:<8} | {transaction['description']:<20} | {transaction['net_amount']:>9.2f}xaf")
+            income_amount = transaction.get("income_amount", 0)
+            expense_amount = transaction.get("expense_amount", 0)
+            amount = income_amount if income_amount else -expense_amount
+            print(f"{transaction['date']:<12} | {transaction['type']:<8} | {transaction['description']:<20} | {amount:>9.2f}xaf")
         print("-" * 50)
         print(f"Total matches: {len(results)}")
     else:
@@ -287,8 +294,8 @@ def monthly_summary(transactions):
         return
 
     #  Use .get for safe access
-    income = sum(t.get("amount", 0) for t in monthly_transactions if t.get("type") == "income")
-    expense = sum(t.get("amount", 0) for t in monthly_transactions if t.get("type") == "expense")
+    income = sum(t.get("income_amount", 0) for t in monthly_transactions if t.get("type") == "income")
+    expense = sum(t.get("expense_amount", 0) for t in monthly_transactions if t.get("type") == "expense")
     balance = income - expense
     savings_rate = (balance / income * 100) if income > 0 else 0
 
@@ -326,12 +333,11 @@ def summarize_by_month(transactions):
         try:
             transaction_date = datetime.strptime(transaction.get("date", ""), "%d-%m-%Y")
             month = transaction_date.strftime("%B %Y")
-            amount = transaction.get("amount", 0)
 
             if transaction.get("type") == "income":
-                monthly_data[month]["income"] += transaction.get("income_amount", transaction.get("amount", 0.0))
+                monthly_data[month]["income"] += transaction.get("income_amount", 0.0)
             elif transaction.get("type") == "expense":
-                monthly_data[month]["expenses"] += transaction.get("expense_amount", transaction.get("amount", 0.0))
+                monthly_data[month]["expenses"] += transaction.get("expense_amount", 0.0)
 
         except (ValueError, KeyError):
             # Skip transactions with invalid dates or missing required fields
@@ -341,7 +347,7 @@ def summarize_by_month(transactions):
         monthly_data[m]["balance"] = monthly_data[m]["income"] - monthly_data[m]["expenses"]
 
     # sort months chronologically
-    months = sorted(set(monthly_data))
+    months = sorted(set(monthly_data), key=lambda m: datetime.strptime(m, "%B %Y"))
     return months, monthly_data
 
 
@@ -379,6 +385,15 @@ def visualize_finances(transactions):
 
 
 # exporting reports
+def safe_filename(filename):
+    # Only allow alphanumeric, dash, underscore, and dot
+    filename = re.sub(r'[^A-Za-z0-9._-]', '_', filename)
+    # Prevent path traversal
+    if '..' in filename or filename.startswith(('/', '\\')):
+        raise ValueError("Invalid filename.")
+    return filename
+
+
 def export_to_csv(transactions, filename="finance_report.csv"):
     """
     Export transaction to a csv file
@@ -392,12 +407,17 @@ def export_to_csv(transactions, filename="finance_report.csv"):
         return
     fieldnames = ["date", "type", "income_amount", "expense_amount", "net_amount", "description"]
 
+    # Sanitize filename and restrict to EXPORT_DIR
+    filename = safe_filename(filename)
+    export_path = os.path.join(EXPORT_DIR, filename)
+    os.makedirs(EXPORT_DIR, exist_ok=True)
+
     try:
-        with open(filename, "w", newline="", encoding="utf-8") as csvfile:
+        with open(export_path, "w", newline="", encoding="utf-8") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(transactions)
-        print(f"Transactons sucessfullly exported to {os.path.abspath(filename)}")
+        print(f"Transactions successfully exported to {os.path.abspath(export_path)}")
 
     except Exception as e:
         print(f"Error exporting to CSV: {e}")
@@ -415,10 +435,15 @@ def export_to_json(transactions, filename="finance_data.json"):
         print("No transactions to export.")
         return
 
-    with open(filename, "w", encoding="utf-8") as f:
+    # Sanitize filename and restrict to EXPORT_DIR
+    filename = safe_filename(filename)
+    export_path = os.path.join(EXPORT_DIR, filename)
+    os.makedirs(EXPORT_DIR, exist_ok=True)
+
+    with open(export_path, "w", encoding="utf-8") as f:
         json.dump(transactions, f, indent=4)
 
-    print(f"transactions successfully exported to {os.path.abspath(filename)}")
+    print(f"Transactions successfully exported to {os.path.abspath(export_path)}")
 
 
 # -----------------------------
@@ -454,7 +479,7 @@ def main():
             print("Data saved. Goodbye!")
             break
         else:
-            print("Invalid choice. Please enter 1–6.")
+            print("Invalid choice. Please enter 1–9.")
 
 
 if __name__ == "__main__":
