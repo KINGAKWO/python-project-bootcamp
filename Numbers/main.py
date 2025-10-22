@@ -7,6 +7,7 @@ import csv
 FACTS_FILE = "number_facts.json"
 CSV_FILE = "number_facts.csv"
 
+
 def get_number_fact(number):
     """fetches a fun fact about a given number using the NuMBERS API"""
     url = f"http://numbersapi.com/{number}?json"
