@@ -9,7 +9,7 @@ CSV_FILE = "number_facts.csv"
 
 
 def get_number_fact(number):
-    """fetches a fun fact about a given number using the NuMBERS API"""
+    """Fetches a fun fact about a given number using the Numbers API"""
     url = f"http://numbersapi.com/{number}?json"
 
     try:
@@ -25,8 +25,8 @@ def get_number_fact(number):
     return None
 
 
-def load_existing_facts(filename="number_facts.json"):
-    """Loads existing facts if the JSON FILE exists"""
+def load_existing_facts(filename=FACTS_FILE):
+    """Loads existing facts if the JSON file exists"""
     if os.path.exists(filename):
         with open(filename, "r", encoding="utf-8") as file:
             try:
@@ -36,47 +36,66 @@ def load_existing_facts(filename="number_facts.json"):
     return {}
 
 
-def save_fact_to_json(facts, filename="number_facts.json"):
-    """Saves new facts with timestamps to the JSON file."""
-
-    # load existing facts if file exists
+def save_fact_to_json(facts, filename=FACTS_FILE):
+    """Saves new facts with timestamps and counts to the JSON file."""
     all_facts = load_existing_facts(filename)
-    # add or update fact
-    all_facts.update(facts)
 
-    # save back to file
+    for num, info in facts.items():
+        if num in all_facts:
+            all_facts[num]["count"] += 1
+            all_facts[num]["timestamp"] = info["timestamp"]
+        else:
+            info["count"] = 1
+            all_facts[num] = info
+
     with open(filename, "w", encoding="utf-8") as file:
         json.dump(all_facts, file, indent=4)
 
-    print(f"\n saved {len(facts)}  new facts to {filename}!")
+    print(f"\nSaved {len(facts)} new facts to {filename}!")
 
 
 def export_to_csv():
-    """Export all saved facts to a csv file for analysis."""
+    """Export all saved facts to a CSV file for analysis."""
     facts = load_existing_facts()
     if not facts:
         print("No data available to export")
         return
 
-    with open(CSV_FILE, "w", newline="", encoding="utf-8") as file:
+    write_header = not os.path.exists(CSV_FILE) or os.path.getsize(CSV_FILE) == 0
+    with open(CSV_FILE, "a", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
-        writer.writerow(["Number", "Fact", "Timestamp", "Search Count"])
+        if write_header:
+            writer.writerow(["Number", "Fact", "Timestamp", "Search Count"])
         for number, info in facts.items():
             writer.writerow([number, info["fact"], info["timestamp"], info["count"]])
 
-    print(f"\n Data successfully exported to {CSV_FILE}")
+    print(f"\nData successfully exported to {CSV_FILE}")
 
 
-def view_saved_facts(filename="number_facts.json"):
+def view_saved_facts(filename=FACTS_FILE):
     """Displays all previously saved facts."""
     facts = load_existing_facts(filename)
     if not facts:
-        print("NO saved facts found yet.")
+        print("No saved facts yet. Try fetching some first!")
         return
 
-    print("\n Saved Number facts:")
-    for number, info in facts.items():
+    print("\nSaved Number Facts:")
+    for number, info in sorted(facts.items(), key=lambda x: int(x[0])):
         print(f"{number}: {info['fact']} (x{info['count']} searches, saved on {info['timestamp']})")
+
+
+def is_number(s):
+    """Checks if a string can be converted to an integer."""
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+
+def current_timestamp():
+    """Returns the current timestamp as a formatted string."""
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def main():
@@ -87,25 +106,24 @@ def main():
         print("3. Export data to CSV")
         print("4. Exit")
 
-        choice = input("choose an option: ").strip()
+        choice = input("Choose an option: ").strip()
 
         if choice == "1":
-            user_input = input("Enter numbers seperated by commas (e.g., 5,4,3,2,1): ")
-            numbers = [num.strip() for num in user_input.split(",") if num.strip().isdigit()]
+            user_input = input("Enter numbers separated by commas (e.g., 5,4,3,2,1): ")
+            numbers = [num.strip() for num in user_input.split(",") if is_number(num.strip())]
 
             if not numbers:
                 print("Please enter valid numeric values.")
                 continue
 
             facts_to_save = {}
-
             for num in numbers:
                 fact = get_number_fact(num)
                 if fact:
                     print(f"{num}: {fact}")
                     facts_to_save[num] = {
                         "fact": fact,
-                        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        "timestamp": current_timestamp()
                     }
 
             if facts_to_save:
@@ -122,7 +140,7 @@ def main():
             break
 
         else:
-            print("Invalid choice. Please select 1, 2, or 3.")
+            print("Invalid choice. Please select 1, 2, 3, or 4.")
 
 
 if __name__ == "__main__":
