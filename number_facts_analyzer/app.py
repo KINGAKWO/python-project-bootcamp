@@ -11,7 +11,7 @@ def home():
     return render_template("index.html", report=report_content)
 
 
-@app.route("/visuals/<path:filename>")
+@app.route("visual")
 def visual():
     return send_from_directory("visualizations", "number_trends.png")
 
