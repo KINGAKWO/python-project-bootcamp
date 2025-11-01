@@ -51,3 +51,21 @@ python generate_report.py && python generate_visuals.py
 # Run Flask dashboard
 python app.py
 
+Demo:
+![alt text](image.png)
+
+🧭 Learning Takeaways
+
+Working with APIs and JSON
+
+Automating pipelines with Python
+
+Generating and scheduling reports
+
+Building simple dashboards with Flask
+
+👨‍💻 Author
+
+Akwo Makembe King
+Python Developer in training | Data Analyst (IBM Certified in Progress)
+LinkedIn: [Akwo Makembe King](www.linkedin.com/in/akwo-makembe-king-108a28252)
